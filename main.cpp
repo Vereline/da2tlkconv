@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <functional>
 
-#include <hash_map>
+#include <unordered_map>
 
 
 using namespace std;
@@ -310,7 +310,7 @@ public:
     }
 };
 
-void traverseHuffmanTree( HuffmanNode* node, std::vector<u8>& code, stdext::hash_map<wchar_t, std::vector<u8> >& huffmanCodes ) {
+void traverseHuffmanTree( HuffmanNode* node, std::vector<u8>& code, std::unordered_map<wchar_t, std::vector<u8> >& huffmanCodes ) {
     if ( node->left == node->right ) {
         huffmanCodes.insert( std::pair< wchar_t, std::vector<u8> >( node->data, code ) );
     } else {
@@ -1124,10 +1124,10 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
 
     // 重い
     // 文字カウント
-    stdext::hash_map<wchar_t, u32> dictionary;
+    std::unordered_map<wchar_t, u32> dictionary;
 
     // ここもキャッシュを使って弾いてみる
-    stdext::hash_map< std::wstring, u32 > cacheString; // string, offset
+    std::unordered_map< std::wstring, u32 > cacheString; // string, offset
 
     for ( std::list<TLKEntry>::iterator it = entry_list.begin(); it != entry_end; ++it ) {
         TLKEntry& entry = *it;
@@ -1140,14 +1140,14 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
                 if ( dictionary.count( c ) == 0 ) {
                     dictionary.insert( std::pair<wchar_t, u32>( c, 0 ) );
                 }
-                stdext::hash_map<wchar_t, u32>::iterator cn = dictionary.find( c );
+                std::unordered_map<wchar_t, u32>::iterator cn = dictionary.find( c );
                 ++(*cn).second;
             }
             // 消した\0もカウントしないと駄目
             if ( dictionary.count( L'\0' ) == 0 ) {
                 dictionary.insert( std::pair<wchar_t, u32>( L'\0', 0 ) );
             }
-            stdext::hash_map<wchar_t, u32>::iterator cn = dictionary.find( L'\0' );
+            std::unordered_map<wchar_t, u32>::iterator cn = dictionary.find( L'\0' );
             ++(*cn).second;
 
             cacheString.insert( std::pair<std::wstring, u32>(entry.str, entry.offset) );
@@ -1162,13 +1162,13 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
 
 
     // 辞書ツリーの作成
-    stdext::hash_map<wchar_t, u32>::iterator dictionary_end = dictionary.end();
+    std::unordered_map<wchar_t, u32>::iterator dictionary_end = dictionary.end();
 #if 01
     std::list<HuffmanNode*> tree;
 #else
     std::vector<HuffmanNode*> tree;
 #endif
-    for ( stdext::hash_map<wchar_t, u32>::iterator it = dictionary.begin(); it != dictionary_end; ++it ) {
+    for (std::unordered_map<wchar_t, u32>::iterator it = dictionary.begin(); it != dictionary_end; ++it ) {
         HuffmanNode* node = NEW HuffmanNode( (*it).first, (*it).second );
         tree.push_back( node );
     }
@@ -1194,7 +1194,7 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
     cout << "\tcreating bits." << endl;
     // 文字に相当するビット列を産出する
     std::vector<u8> bitcode;
-    stdext::hash_map<wchar_t, std::vector<u8> > huffmanCodes;
+    std::unordered_map<wchar_t, std::vector<u8> > huffmanCodes;
     bitcode.reserve( dictionary.size() * 2 );
     traverseHuffmanTree( tree.front(), bitcode, huffmanCodes ); // saiki
 
@@ -1207,7 +1207,7 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
     //offset = 32;
 
     // \0は先にとって涙ぐましい高速化をする
-    stdext::hash_map<wchar_t, std::vector<u8> >::iterator nullfind = huffmanCodes.find( L'\0' );
+    std::unordered_map<wchar_t, std::vector<u8> >::iterator nullfind = huffmanCodes.find( L'\0' );
     std::vector<u8>& nullcode =  nullfind->second;
     u32 nullsize = static_cast<u32>(nullcode .size());
 
@@ -1223,12 +1223,12 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
     // tlkから読み込んだら作ってみて検証しないとな
     
     // wstringじゃないとアドレス比較されて駄目だと思うがコピーが発生する…findのfuncを変更できないのかな
-    stdext::hash_map< std::wstring, u32 > cacheOffset; // string, offset
+    std::unordered_map< std::wstring, u32 > cacheOffset; // string, offset
 
     for ( std::list<TLKEntry>::iterator it = entry_list.begin(); it != entry_end; ++it ) {
         TLKEntry& entry = *it;
         if ( cacheOffset.count( entry.str ) > 0 ) {
-            stdext::hash_map<std::wstring, u32>::iterator cn = cacheOffset.find( entry.str );
+            std::unordered_map<std::wstring, u32>::iterator cn = cacheOffset.find( entry.str );
 
             entry.bit.clear();
             entry.offset = cn->second;
@@ -1237,7 +1237,7 @@ int convertTXTintoTLK( const char* input_path, const char* output_path ) {
             u32 len = static_cast<u32>(entry.str.length());
             for( u32 i = 0; i < len; ++i ) {
                 wchar_t c = entry.str.c_str()[ i ];
-                stdext::hash_map<wchar_t, std::vector<u8> >::iterator find = huffmanCodes.find( c );
+                std::unordered_map<wchar_t, std::vector<u8> >::iterator find = huffmanCodes.find( c );
                 std::vector<u8>& code =  find->second;
                 u32 codesize = static_cast<u32>(code.size());
                 for( u32 i = 0; i < codesize; ++i ) {
