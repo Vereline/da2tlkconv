@@ -1483,7 +1483,7 @@ int main( int argc, const char* argv[] ) {
     //locale(locale("japanese"), "C", locale::numeric);
 
     cout << "Dragon Age 2 TLK Converter" << endl;
-    cout << "\tAuther: Hikami" << endl;
+    cout << "\tAuthor: Hikami" << endl;
     cout << "\tVersion: 0.6.1\tBuild Date: " << __DATE__ << " " << __TIME__ << endl;
     cout << endl;
 
@@ -1579,6 +1579,9 @@ int main( int argc, const char* argv[] ) {
         return -2;
     }
 
+    cout << "\tInput file name: " << input_path << endl;
+    cout << "\tOutput file name: " << output_path << endl;
+    cout << endl;
 
     int ret = -1;
     switch ( mode ) {
